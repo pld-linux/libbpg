@@ -2,12 +2,12 @@
 # - dynamic lib
 Summary:	A library of functions for manipulating BPG image format files
 Name:		libbpg
-Version:	0.9.2
+Version:	0.9.4
 Release:	0.1
 License:	LGPL v2 and BSD
 Group:		Libraries
 Source0:	http://bellard.org/bpg/%{name}-%{version}.tar.gz
-# Source0-md5:	7a1a176aafc207543b75eb2c42457110
+# Source0-md5:	4d7ed917ce57001d5481b465fe9a1735
 URL:		http://bellard.org/bpg/
 BuildRequires:	libjpeg-turbo-devel
 BuildRequires:	libpng-devel
