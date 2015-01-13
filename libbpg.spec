@@ -1,5 +1,3 @@
-# TODO
-# - dynamic lib
 Summary:	A library of functions for manipulating BPG image format files
 Summary(pl.UTF-8):	Biblioteka funkcji do operacji na plikach obrazów w formacie BPG
 Name:		libbpg
@@ -10,10 +8,12 @@ License:	LGPL v2.1 and BSD
 Group:		Libraries
 Source0:	http://bellard.org/bpg/%{name}-%{version}.tar.gz
 # Source0-md5:	30d1619656955fb3fbba5fe9f9f27f67
+Patch0:		%{name}-shared.patch
 URL:		http://bellard.org/bpg/
 BuildRequires:	libjpeg-turbo-devel
 BuildRequires:	libpng-devel
 BuildRequires:	libstdc++-devel
+BuildRequires:	libtool >= 2:1.5
 ExclusiveArch:	%{ix86} %{x8664}
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
@@ -61,15 +61,40 @@ Group:		Development/Libraries
 Requires:	%{name} = %{version}-%{release}
 
 %description devel
-This package contains the library and header files for developing
-applications that use libbpg.
+This package contains the header files for developing applications
+that use libbpg.
 
 %description devel -l pl.UTF-8
-Ten pakiet zawiera bibliotekę i pliki nagłówkowe do tworzenia
-aplikacji wykorzystujących libbpg.
+Ten pakiet zawiera pliki nagłówkowe do tworzenia aplikacji
+wykorzystujących libbpg.
+
+%package static
+Summary:	Static libbpg library
+Summary(pl.UTF-8):	Statyczna biblioteka libbpg
+Group:		Development/Libraries
+Requires:	%{name}-devel = %{version}-%{release}
+
+%description static
+Static libbpg library.
+
+%description static -l pl.UTF-8
+Statyczna biblioteka libbpg.
+
+%package tools
+Summary:	Tools to encode and decode BPG files
+Summary(pl.UTF-8):	Narzędzia do kodowania i dekodowania plików BPG
+Group:		Applications/Graphics
+Requires:	%{name} = %{version}-%{release}
+
+%description tools
+Tools to encode and decode BPG files.
+
+%description tools -l pl.UTF-8
+Narzędzia do kodowania i dekodowania plików BPG.
 
 %prep
 %setup -q
+%patch0 -p1
 
 %{__sed} -i -e 's,-Os,$(OPTFLAGS),' Makefile
 %{__sed} -i -e 's#LDFLAGS=-g#LDFLAGS=%{rpmldflags}#' Makefile
@@ -79,25 +104,42 @@ aplikacji wykorzystujących libbpg.
 	CC="%{__cc}" \
 	CXX="%{__cxx}" \
 	OPTFLAGS="%{rpmcflags}" \
+	libdir=%{_libdir}
 
 %install
 rm -rf $RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT{%{_bindir},%{_includedir},%{_libdir}}
-install -p bpgdec bpgenc $RPM_BUILD_ROOT%{_bindir}
-cp -p bpgenc.h libbpg.h $RPM_BUILD_ROOT%{_includedir}
-cp -p libbpg.a $RPM_BUILD_ROOT%{_libdir}
+
+%{__make} install install-lib \
+	DESTDIR=$RPM_BUILD_ROOT \
+	prefix=%{_prefix} \
+	libdir=%{_libdir}
+
+# no external dependencies
+%{__rm} $RPM_BUILD_ROOT%{_libdir}/libbpg.la
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
+%post	-p /sbin/ldconfig
+%postun	-p /sbin/ldconfig
+
 %files
 %defattr(644,root,root,755)
 %doc ChangeLog README doc html post.js
-%attr(755,root,root) %{_bindir}/bpgdec
-%attr(755,root,root) %{_bindir}/bpgenc
+%attr(755,root,root) %{_libdir}/libbpg.so.*.*.*
+%attr(755,root,root) %ghost %{_libdir}/libbpg.so.0
 
 %files devel
 %defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/libbpg.so
 %{_includedir}/bpgenc.h
 %{_includedir}/libbpg.h
+
+%files static
+%defattr(644,root,root,755)
 %{_libdir}/libbpg.a
+
+%files tools
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_bindir}/bpgdec
+%attr(755,root,root) %{_bindir}/bpgenc

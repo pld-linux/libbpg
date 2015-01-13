@@ -1,0 +1,96 @@
+--- libbpg-0.9.5/Makefile.orig	2015-01-11 17:17:07.000000000 +0100
++++ libbpg-0.9.5/Makefile	2015-01-13 21:41:19.791296623 +0100
+@@ -18,6 +18,9 @@
+ #CONFIG_APPLE=y
+ # Installation prefix
+ prefix=/usr/local
++bindir=$(prefix)/bin
++libdir=$(prefix)/lib
++includedir=$(prefix)/include
+ 
+ 
+ #################################
+@@ -38,7 +41,7 @@
+ 
+ PWD:=$(shell pwd)
+ 
+-CFLAGS:=-Os -Wall -MMD -fno-asynchronous-unwind-tables -fdata-sections -ffunction-sections -fno-math-errno -fno-signed-zeros -fno-tree-vectorize -fomit-frame-pointer
++CFLAGS:=$(OPTFLAGS) -Wall -MMD -fno-asynchronous-unwind-tables -fdata-sections -ffunction-sections -fno-math-errno -fno-signed-zeros -fno-tree-vectorize -fomit-frame-pointer
+ CFLAGS+=-D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D_REENTRANT
+ CFLAGS+=-I.
+ CFLAGS+=-DCONFIG_BPG_VERSION=\"$(shell cat VERSION)\"
+@@ -53,7 +56,7 @@
+ EMLDFLAGS+=-O3 --memory-init-file 0 --closure 1 --post-js post.js
+ EMCFLAGS:=$(CFLAGS)
+ 
+-LDFLAGS=-g
++LDFLAGS=-Wl,--as-needed -Wl,--no-copy-dt-needed-entries -Wl,-z,relro -Wl,-z,combreloc 
+ ifdef CONFIG_APPLE
+ LDFLAGS+=-Wl,-dead_strip
+ else
+@@ -85,7 +88,7 @@
+ 
+ LIBBPG_JS8A_OBJS:=$(patsubst %.o, %.js8a.o, $(LIBBPG_OBJS)) tmalloc.js8a.o
+ 
+-$(LIBBPG_OBJS): CFLAGS+=-D_ISOC99_SOURCE -D_POSIX_C_SOURCE=200112 -D_XOPEN_SOURCE=600 -DHAVE_AV_CONFIG_H -std=c99 -D_GNU_SOURCE=1 -DUSE_VAR_BIT_DEPTH -DUSE_PRED
++$(LIBBPG_OBJS) $(LIBBPG_OBJS:.o=.lo): CFLAGS+=-D_ISOC99_SOURCE -D_POSIX_C_SOURCE=200112 -D_XOPEN_SOURCE=600 -DHAVE_AV_CONFIG_H -std=c99 -D_GNU_SOURCE=1 -DUSE_VAR_BIT_DEPTH -DUSE_PRED
+ 
+ $(LIBBPG_JS_OBJS): EMCFLAGS+=-D_ISOC99_SOURCE -D_POSIX_C_SOURCE=200112 -D_XOPEN_SOURCE=600 -DHAVE_AV_CONFIG_H -std=c99 -D_GNU_SOURCE=1 -DUSE_VAR_BIT_DEPTH
+ 
+@@ -155,17 +158,17 @@
+ 
+ bpgenc.o: CFLAGS+=-Wno-unused-but-set-variable
+ 
+-libbpg.a: $(LIBBPG_OBJS) 
+-	$(AR) rcs $@ $^
++libbpg.la: $(LIBBPG_OBJS:.o=.lo)
++	libtool --mode=link --tag=CC $(CC) $(LDFLAGS) -o $@ $^ -rpath $(libdir)
+ 
+-bpgdec$(EXE): bpgdec.o libbpg.a
+-	$(CC) $(LDFLAGS) -o $@ $^ $(BPGDEC_LIBS)
++bpgdec$(EXE): bpgdec.o libbpg.la
++	libtool --mode=link --tag=CC $(CC) $(LDFLAGS) -o $@ $^ $(BPGDEC_LIBS)
+ 
+ bpgenc$(EXE): $(BPGENC_OBJS)
+ 	$(CXX) $(LDFLAGS) -o $@ $^ $(BPGENC_LIBS)
+ 
+-bpgview$(EXE): bpgview.o libbpg.a
+-	$(CC) $(LDFLAGS) -o $@ $^ $(BPGVIEW_LIBS)
++bpgview$(EXE): bpgview.o libbpg.la
++	libtool --mode=link --tag=CC $(CC) $(LDFLAGS) -o $@ $^ $(BPGVIEW_LIBS)
+ 
+ bpgdec.js: $(LIBBPG_JS_OBJS) post.js
+ 	$(EMCC) $(EMLDFLAGS) -s TOTAL_MEMORY=33554432 -o $@ $(LIBBPG_JS_OBJS)
+@@ -177,12 +180,17 @@
+ 	$(EMCC) $(EMLDFLAGS) -s TOTAL_MEMORY=16777216 -o $@ $(LIBBPG_JS8A_OBJS)
+ 
+ size:
+-	strip bpgdec
+ 	size bpgdec libbpg.o libavcodec/*.o libavutil/*.o | sort -n
+ 	gzip < bpgdec | wc
+ 
++install-lib: libbpg.la
++	install -d $(DESTDIR)$(libdir) $(DESTDIR)$(includedir)
++	libtool --mode=install install libbpg.la $(DESTDIR)$(libdir)
++	install -m 644 bpgenc.h libbpg.h $(DESTDIR)$(includedir)
++
+ install: bpgenc bpgdec
+-	install -s -m 755 $^ $(prefix)/bin
++	install -d $(DESTDIR)$(bindir)
++	install -m 755 $^ $(DESTDIR)$(bindir)
+ 
+ CLEAN_DIRS=doc html libavcodec libavutil \
+      jctvc jctvc/TLibEncoder jctvc/TLibVideoIO jctvc/TLibCommon jctvc/libmd5
+@@ -198,6 +206,12 @@
+ %.o: %.cpp
+ 	$(CXX) $(CXXFLAGS) -c -o $@ $<
+ 
++%.lo: %.c
++	libtool --mode=compile --tag=CC $(CC) $(CFLAGS) -c -o $@ $<
++
++%.lo: %.cpp
++	libtool --mode=compile --tag=CXX $(CXX) $(CXXFLAGS) -c -o $@ $<
++
+ %.js.o: %.c
+ 	$(EMCC) $(EMCFLAGS) -c -o $@ $<
+ 
