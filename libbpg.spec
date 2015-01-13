@@ -1,6 +1,7 @@
 # TODO
 # - dynamic lib
 Summary:	A library of functions for manipulating BPG image format files
+Summary(pl.UTF-8):	Biblioteka funkcji do operacji na plikach obrazów w formacie BPG
 Name:		libbpg
 Version:	0.9.4
 Release:	0.1
@@ -23,7 +24,7 @@ replace the JPEG image format when quality or file size is an issue.
 Its main advantages are:
 - High compression ratio. Files are much smaller than JPEG for similar
   quality.
-- Supported by most Web browsers with a small Javascript decoder.
+- Supported by most Web browsers with a small JavaScript decoder.
 - Based on a subset of the HEVC open video compression standard.
 - Supports the same chroma formats as JPEG (grayscale, YCbCr 4:2:0,
   4:2:2, 4:4:4) to reduce the losses during the conversion. An alpha
@@ -34,14 +35,38 @@ Its main advantages are:
 - Lossless compression is supported.
 - Various metadata (such as EXIF, ICC profile, XMP) can be included.
 
+%description -l pl.UTF-8
+BPG (Better Portable Graphics - lepsza przenośna grafika) to format
+obrazu, którego celem jest zastąpienie formatu JPEG tam, gdzie ma
+znaczenie jakość lub rozmiar pliku.
+
+Główne zalety to:
+- ma wysoki współczynnik kompresji; pliki są znacznie mniejsze niż
+  JPEG o podobnej jakości
+- jest obsługiwany przez większość przeglądarek WWW przy użyciu małego
+  dekodera w JavaScripcie
+- jest oparty na podzbiorze otwartego standardu kompresji obrazu HEVC
+- obsługuje te same schematy barw, co JPEG (odcienie szarości, YCbCr
+  4:2:0, 4:2:2, 4:4:4) w celu ograniczenia strat przy konwersji;
+  obsługiwany jest kanał alfa oraz przestrzenie barw RGB, YCgCo i CMYK
+- ma natywną obsługę 8 i 14 bitów na kanał w celu zapewnienia większej
+  dynamiki
+- obsługiwana jest kompresja bezstratna
+- można dołączać różne metadane (jak EXIF, profil ICC, XMP).
+
 %package devel
-Summary:	Development files for %{name}
+Summary:	Development files for libbpg library
+Summary(pl.UTF-8):	Pliki programistyczne biblioteki libbpg
 Group:		Development/Libraries
 Requires:	%{name} = %{version}-%{release}
 
 %description devel
-The %{name}-devel package contains libraries and header files for
-developing applications that use %{name}.
+This package contains the library and header files for developing
+applications that use libbpg.
+
+%description devel -l pl.UTF-8
+Ten pakiet zawiera bibliotekę i pliki nagłówkowe do tworzenia
+aplikacji wykorzystujących libbpg.
 
 %prep
 %setup -q
@@ -67,7 +92,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(644,root,root,755)
-%doc doc html post.js
+%doc ChangeLog README doc html post.js
 %attr(755,root,root) %{_bindir}/bpgdec
 %attr(755,root,root) %{_bindir}/bpgenc
 
