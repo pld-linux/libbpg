@@ -1,7 +1,7 @@
 #
 # Conditional build:
 %bcond_without	sdl	# SDL based viewer
-%bcond_without	x265	# x265 support in BPG encoder
+%bcond_with	x265	# x265 support in BPG encoder
 #
 Summary:	A library of functions for manipulating BPG image format files
 Summary(pl.UTF-8):	Biblioteka funkcji do operacji na plikach obrazów w formacie BPG
