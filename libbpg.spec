@@ -1,8 +1,13 @@
+#
+# Conditional build:
+%bcond_without	sdl	# SDL based viewer
+%bcond_without	x265	# x265 support in BPG encoder
+#
 Summary:	A library of functions for manipulating BPG image format files
 Summary(pl.UTF-8):	Biblioteka funkcji do operacji na plikach obrazów w formacie BPG
 Name:		libbpg
 Version:	0.9.5
-Release:	0.1
+Release:	1
 # The original BPG code is BSD-licensed, while the modified FFmpeg library is under LGPLv2.1.
 License:	LGPL v2.1 and BSD
 Group:		Libraries
@@ -10,11 +15,15 @@ Source0:	http://bellard.org/bpg/%{name}-%{version}.tar.gz
 # Source0-md5:	30d1619656955fb3fbba5fe9f9f27f67
 Patch0:		%{name}-shared.patch
 URL:		http://bellard.org/bpg/
-BuildRequires:	libjpeg-turbo-devel
+%if %{with sdl}
+BuildRequires:	SDL-devel
+BuildRequires:	SDL_image-devel
+%endif
+BuildRequires:	libjpeg-devel
 BuildRequires:	libpng-devel
 BuildRequires:	libstdc++-devel
 BuildRequires:	libtool >= 2:1.5
-ExclusiveArch:	%{ix86} %{x8664}
+%{?with_x265:BuildRequires:	libx265-devel}
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -92,6 +101,18 @@ Tools to encode and decode BPG files.
 %description tools -l pl.UTF-8
 Narzędzia do kodowania i dekodowania plików BPG.
 
+%package view
+Summary:	SDL based BPG images viewer
+Summary(pl.UTF-8):	Oparta na SDL przeglądarka obrazów BPG
+Group:		Applications/Graphics
+Requires:	%{name} = %{version}-%{release}
+
+%description view
+SDL based BPG images viewer.
+
+%description view -l pl.UTF-8
+Oparta na SDL przeglądarka obrazów BPG.
+
 %prep
 %setup -q
 %patch0 -p1
@@ -104,6 +125,8 @@ Narzędzia do kodowania i dekodowania plików BPG.
 	CC="%{__cc}" \
 	CXX="%{__cxx}" \
 	OPTFLAGS="%{rpmcflags}" \
+	%{!?with_sdl:USE_BPGVIEW=} \
+	%{?with_x265:USE_X265=y} \
 	libdir=%{_libdir}
 
 %install
@@ -113,6 +136,10 @@ rm -rf $RPM_BUILD_ROOT
 	DESTDIR=$RPM_BUILD_ROOT \
 	prefix=%{_prefix} \
 	libdir=%{_libdir}
+
+%if %{with sdl}
+install bpgview $RPM_BUILD_ROOT%{_bindir}
+%endif
 
 # no external dependencies
 %{__rm} $RPM_BUILD_ROOT%{_libdir}/libbpg.la
@@ -125,7 +152,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(644,root,root,755)
-%doc ChangeLog README doc html post.js
+%doc ChangeLog README doc/bpg_spec.txt html post.js
 %attr(755,root,root) %{_libdir}/libbpg.so.*.*.*
 %attr(755,root,root) %ghost %{_libdir}/libbpg.so.0
 
@@ -143,3 +170,9 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_bindir}/bpgdec
 %attr(755,root,root) %{_bindir}/bpgenc
+
+%if %{with sdl}
+%files view
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_bindir}/bpgview
+%endif
