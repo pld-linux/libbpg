@@ -7,7 +7,7 @@ Summary:	A library of functions for manipulating BPG image format files
 Summary(pl.UTF-8):	Biblioteka funkcji do operacji na plikach obrazów w formacie BPG
 Name:		libbpg
 Version:	0.9.5
-Release:	1
+Release:	2
 # The original BPG code is BSD-licensed, while the modified FFmpeg library is under LGPLv2.1.
 License:	LGPL v2.1 and BSD
 Group:		Libraries
