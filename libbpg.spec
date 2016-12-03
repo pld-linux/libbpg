@@ -1,18 +1,19 @@
 #
 # Conditional build:
-%bcond_without	sdl	# SDL based viewer
-%bcond_with	x265	# x265 support in BPG encoder
+%bcond_without	sdl		# SDL based viewer
+%bcond_with	x265		# x265 support in BPG encoder
+%bcond_with	system_x265	# system x265 in BPG encoder (internal x265 is built as 8/10/12-bit)
 #
 Summary:	A library of functions for manipulating BPG image format files
 Summary(pl.UTF-8):	Biblioteka funkcji do operacji na plikach obrazów w formacie BPG
 Name:		libbpg
-Version:	0.9.5
-Release:	2
+Version:	0.9.7
+Release:	1
 # The original BPG code is BSD-licensed, while the modified FFmpeg library is under LGPLv2.1.
 License:	LGPL v2.1 and BSD
 Group:		Libraries
 Source0:	http://bellard.org/bpg/%{name}-%{version}.tar.gz
-# Source0-md5:	30d1619656955fb3fbba5fe9f9f27f67
+# Source0-md5:	c3498fecc0f51b650202f3daf466f738
 Patch0:		%{name}-shared.patch
 URL:		http://bellard.org/bpg/
 %if %{with sdl}
@@ -117,16 +118,14 @@ Oparta na SDL przeglądarka obrazów BPG.
 %setup -q
 %patch0 -p1
 
-%{__sed} -i -e 's,-Os,$(OPTFLAGS),' Makefile
-%{__sed} -i -e 's#LDFLAGS=-g#LDFLAGS=%{rpmldflags}#' Makefile
-
 %build
 %{__make} \
 	CC="%{__cc}" \
 	CXX="%{__cxx}" \
 	OPTFLAGS="%{rpmcflags}" \
 	%{!?with_sdl:USE_BPGVIEW=} \
-	%{?with_x265:USE_X265=y} \
+	%{!?with_x265:USE_X265=} \
+	%{?with_system_x265:X265_LIBS= BPGENC_LIBS="-lx265 -lpng -ljpeg"} \
 	libdir=%{_libdir}
 
 %install
@@ -134,6 +133,9 @@ rm -rf $RPM_BUILD_ROOT
 
 %{__make} install install-lib \
 	DESTDIR=$RPM_BUILD_ROOT \
+	%{!?with_sdl:USE_BPGVIEW=} \
+	%{!?with_x265:USE_X265=} \
+	%{?with_system_x265:X265_LIBS=} \
 	prefix=%{_prefix} \
 	libdir=%{_libdir}
 
