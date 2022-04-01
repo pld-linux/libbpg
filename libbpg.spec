@@ -12,10 +12,10 @@ Release:	1
 # The original BPG code is BSD-licensed, while the modified FFmpeg library is under LGPLv2.1.
 License:	LGPL v2.1 and BSD
 Group:		Libraries
-Source0:	http://bellard.org/bpg/%{name}-%{version}.tar.gz
+Source0:	https://bellard.org/bpg/%{name}-%{version}.tar.gz
 # Source0-md5:	1c8258bc6de26bbae7c688944a2023ac
 Patch0:		%{name}-shared.patch
-URL:		http://bellard.org/bpg/
+URL:		https://bellard.org/bpg/
 %if %{with sdl}
 BuildRequires:	SDL-devel
 BuildRequires:	SDL_image-devel
