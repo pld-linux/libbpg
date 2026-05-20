@@ -1,0 +1,11 @@
+--- libbpg-0.9.8/bpgdec.c.orig
++++ libbpg-0.9.8/bpgdec.c
+@@ -27,6 +27,8 @@
+ #include <math.h>
+ #include <getopt.h>
+ #include <inttypes.h>
++#include <string.h>
++#include <strings.h>
+
+ /* define it to include PNG output */
+ #define USE_PNG

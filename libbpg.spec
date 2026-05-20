@@ -1,3 +1,4 @@
+# DEAD upstream (no updates since 2018)
 #
 # Conditional build:
 %bcond_without	sdl		# SDL based viewer
@@ -9,13 +10,14 @@ Summary(pl.UTF-8):	Biblioteka funkcji do operacji na plikach obrazów w formacie
 Name:		libbpg
 Version:	0.9.8
 # This library is full of CVE issues
-Release:	0.1
+Release:	0.2
 # The original BPG code is BSD-licensed, while the modified FFmpeg library is under LGPLv2.1.
 License:	LGPL v2.1 and BSD
 Group:		Libraries
 Source0:	https://bellard.org/bpg/%{name}-%{version}.tar.gz
 # Source0-md5:	1c8258bc6de26bbae7c688944a2023ac
 Patch0:		%{name}-shared.patch
+Patch1:		%{name}-includes.patch
 URL:		https://bellard.org/bpg/
 %if %{with sdl}
 BuildRequires:	SDL-devel
@@ -118,12 +120,13 @@ Oparta na SDL przeglądarka obrazów BPG.
 %prep
 %setup -q
 %patch -P0 -p1
+%patch -P1 -p1
 
 %build
 %{__make} \
 	CC="%{__cc}" \
 	CXX="%{__cxx}" \
-	OPTFLAGS="%{rpmcflags}" \
+	OPTFLAGS="%{rpmcflags} %{rpmcppflags}" \
 	%{!?with_sdl:USE_BPGVIEW=} \
 	%{!?with_x265:USE_X265=} \
 	%{?with_system_x265:X265_LIBS= BPGENC_LIBS="-lx265 -lpng -ljpeg"} \
